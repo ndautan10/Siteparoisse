@@ -57,8 +57,8 @@ Full-stack parish website for "Notre Dame d'Autan" (Castanet-Tolosan, Saint-Oren
 ### P2 (Suggested improvements)
 - ~~Search/filter in CMS lists~~ ✅ Implemented (search bar in all tabs)
 - ~~Responsive tabs for mobile~~ ✅ Implemented (horizontal scroll, hidden scrollbar)
-- Content preview before publishing
-- Status indicators (past/upcoming events, published/draft)
+- ~~Content preview before publishing~~ ✅ Implemented (preview modals for news & events)
+- ~~Status indicators~~ ✅ Implemented (Publié/Brouillon for news, À venir/Passé for events)
 - Extract modal logic into reusable EventModal component
 - Centralize stripHtml utility function
 

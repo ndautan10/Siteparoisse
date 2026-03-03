@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2, LogOut, Newspaper, Clock, Calendar, Mail, Upload, Copy, X, FileText, Repeat, LayoutDashboard, Users, Download, Eye, MessageSquare, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2, LogOut, Newspaper, Clock, Calendar, Mail, Upload, Copy, X, FileText, Repeat, LayoutDashboard, Users, Download, Eye, EyeOff, MessageSquare, Search } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { format, addWeeks, addMonths, addDays } from 'date-fns';
@@ -70,6 +70,10 @@ const AdminDashboard = () => {
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Preview state
+  const [previewNews, setPreviewNews] = useState(false);
+  const [previewEvent, setPreviewEvent] = useState(false);
 
   const NEWS_CATEGORIES = [
     'Actualité',
@@ -920,6 +924,16 @@ const AdminDashboard = () => {
                   >
                     {editingNews ? 'Mettre à jour' : 'Publier'}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewNews(true)}
+                    disabled={!newsForm.title}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                    data-testid="news-preview-button"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Aperçu
+                  </button>
                   {editingNews && (
                     <button
                       type="button"
@@ -936,6 +950,28 @@ const AdminDashboard = () => {
                 </div>
               </form>
             </div>
+
+            {/* News Preview Modal */}
+            {previewNews && (
+              <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4" onClick={() => setPreviewNews(false)} data-testid="news-preview-modal">
+                <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="relative">
+                    {newsForm.image_url && (
+                      <img src={newsForm.image_url.startsWith('/api') ? `${BACKEND_URL}${newsForm.image_url}` : newsForm.image_url} alt="" className="w-full h-48 object-cover rounded-t-2xl" />
+                    )}
+                    <div className="absolute top-3 right-3">
+                      <button onClick={() => setPreviewNews(false)} className="bg-white/90 rounded-full p-1.5 hover:bg-white shadow"><X className="w-4 h-4" /></button>
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <span className="text-xs font-semibold text-gold uppercase tracking-wider">{newsForm.category === 'Autre' ? (customCategory || 'Autre') : newsForm.category}</span>
+                    <h2 className="font-serif text-2xl text-slate-900 mt-2 mb-4">{newsForm.title || 'Sans titre'}</h2>
+                    <div className="prose prose-sm max-w-none text-slate-600" dangerouslySetInnerHTML={{ __html: newsForm.content || '<p class="text-slate-400 italic">Aucun contenu</p>' }}></div>
+                    <p className="text-xs text-slate-400 mt-6 pt-4 border-t border-slate-100">{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* News List */}
             <div className="space-y-4">
@@ -964,7 +1000,14 @@ const AdminDashboard = () => {
                         className="mt-1 w-4 h-4 rounded border-slate-300 text-gold focus:ring-gold flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <h4 className="font-medium text-slate-900 mb-1 truncate">{item.title}</h4>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium text-slate-900 truncate">{item.title}</h4>
+                          {item.published === false ? (
+                            <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 flex-shrink-0 flex items-center gap-1"><EyeOff className="w-3 h-3" />Brouillon</span>
+                          ) : (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5 flex-shrink-0">Publié</span>
+                          )}
+                        </div>
                         <p className="text-sm text-slate-600 mb-2 line-clamp-2 overflow-hidden" style={{ wordBreak: 'break-word' }}>{(() => { const tmp = document.createElement('div'); tmp.innerHTML = item.content; return (tmp.textContent || '').replace(/\u00A0/g, ' '); })()}</p>
                         <div className="flex items-center space-x-2 text-xs text-slate-500">
                           <span>{formatDate(item.created_at)}</span>
@@ -1511,6 +1554,16 @@ const AdminDashboard = () => {
                     <Plus className="w-4 h-4" />
                     <span>{editingEvent ? 'Mettre à jour' : 'Ajouter'}</span>
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewEvent(true)}
+                    disabled={!eventForm.title || !eventForm.date}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                    data-testid="event-preview-button"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Aperçu
+                  </button>
                   {editingEvent && (
                     <button
                       type="button"
@@ -1527,6 +1580,28 @@ const AdminDashboard = () => {
                 </div>
               </form>
             </div>
+
+            {/* Event Preview Modal */}
+            {previewEvent && (
+              <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4" onClick={() => setPreviewEvent(false)} data-testid="event-preview-modal">
+                <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="bg-gradient-to-r from-teal-600 to-cyan-700 text-white p-6 rounded-t-2xl relative">
+                    <button onClick={() => setPreviewEvent(false)} className="absolute top-3 right-3 bg-white/20 rounded-full p-1.5 hover:bg-white/30"><X className="w-4 h-4" /></button>
+                    <span className="text-xs font-semibold uppercase tracking-wider opacity-80">{eventForm.category === 'Autre' ? (customEventCategory || 'Autre') : eventForm.category}</span>
+                    <h2 className="font-serif text-2xl mt-2">{eventForm.title || 'Sans titre'}</h2>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center gap-4 text-sm text-slate-600">
+                      <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-gold" />{eventForm.date ? new Date(eventForm.date + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</div>
+                      <div className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-gold" />{eventForm.time || '—'}{eventForm.end_time ? ` - ${eventForm.end_time}` : ''}</div>
+                    </div>
+                    {eventForm.location && <p className="text-sm text-slate-600"><span className="font-medium">Lieu :</span> {eventForm.location}</p>}
+                    {eventForm.description && <div className="prose prose-sm max-w-none text-slate-600" dangerouslySetInnerHTML={{ __html: eventForm.description }}></div>}
+                    {!eventForm.description && <p className="text-slate-400 italic text-sm">Aucune description</p>}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -1554,9 +1629,14 @@ const AdminDashboard = () => {
                         className="mt-1 w-4 h-4 rounded border-slate-300 text-gold focus:ring-gold flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h4 className="font-medium text-slate-900 truncate">{item.title}</h4>
                           <span className="text-xs bg-gold/10 text-gold px-2 py-0.5 rounded-full flex-shrink-0">{item.category}</span>
+                          {item.date < new Date().toISOString().split('T')[0] ? (
+                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 rounded-full px-2 py-0.5 flex-shrink-0">Passé</span>
+                          ) : (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5 flex-shrink-0">À venir</span>
+                          )}
                         </div>
                         {item.description && <p className="text-sm text-slate-600 mb-1 line-clamp-2 overflow-hidden" style={{ wordBreak: 'break-word' }}>{(() => { const tmp = document.createElement('div'); tmp.innerHTML = item.description; return (tmp.textContent || '').replace(/\u00A0/g, ' '); })()}</p>}
                         <p className="text-sm text-slate-500 truncate">
