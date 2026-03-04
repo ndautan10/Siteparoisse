@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 export const SEO = ({ title, description }) => {
   const siteName = 'Paroisse Notre Dame d\'Autan';
-  const fullTitle = title ? title + ' | ' + siteName : siteName;
+  const fullTitle = title ? siteName + ' | ' + title : siteName;
   const metaDescription = description || 'Paroisse Notre Dame d\'Autan - Communaut\u00e9 paroissiale vivante et accueillante au service de la foi et de la fraternit\u00e9. Castanet-Tolosan, Saint-Orens et environs.';
 
   useEffect(() => {
